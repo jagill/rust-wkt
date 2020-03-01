@@ -1,6 +1,7 @@
 use crate::char_class::CharClass;
 use crate::geometry_type::GeometryType;
-use crate::tokenizer::Tokenizer;
+use crate::parse_error::{ParseError, ParseResult};
+use crate::tokenizer::{Token, Tokenizer};
 
 pub struct WktReader<'a, S: ParseState> {
     tokens: Tokenizer<'a>,
@@ -15,23 +16,25 @@ impl<'a> WktReader<'a, Start> {
         }
     }
 
-    pub fn parse(self) -> Result<GeometryType, String> {
+    pub fn parse(self) -> ParseResult<GeometryType> {
         let n = self.read()?;
         Ok(n.get_type())
     }
 
-    fn read(mut self) -> Result<WktReader<'a, Geometry>, String> {
-        let (char_class, token) = self
+    fn read(mut self) -> ParseResult<WktReader<'a, Geometry>> {
+        let Token { char_class, value } = self
             .tokens
             .next_non_whitespace()
-            .ok_or_else(|| String::from("Empty WKT"))?;
+            // this is Option<ParseResult<Token>>, so double unwrap
+            .ok_or_else(ParseError::empty_wkt)??;
+
         if char_class != CharClass::Character {
-            Err(format!("Unexpected initial characters: '{}'", token))
+            Err(ParseError::unexpected_initial_chars(value))
         } else {
             Ok(WktReader::<Geometry> {
                 tokens: self.tokens,
                 state: Geometry {
-                    geometry_type: GeometryType::of(token)?,
+                    geometry_type: GeometryType::of(value)?,
                 },
             })
         }

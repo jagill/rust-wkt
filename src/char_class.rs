@@ -1,3 +1,5 @@
+use crate::parse_error::{ParseError, ParseResult};
+
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum CharClass {
     Whitespace,
@@ -9,7 +11,9 @@ pub enum CharClass {
 }
 
 impl CharClass {
-    pub fn of(c: char) -> Result<CharClass, String> {
+    /// Get the CharClass of a char.
+    /// If char is not an expected type, return a ParseError.
+    pub fn of(c: char) -> ParseResult<CharClass> {
         match c {
             '(' => Ok(CharClass::LeftParen),
             ')' => Ok(CharClass::RightParen),
@@ -17,7 +21,7 @@ impl CharClass {
             'A'..='z' => Ok(CharClass::Character),
             '0'..='9' | '.' => Ok(CharClass::Digit),
             x if x.is_whitespace() => Ok(CharClass::Whitespace),
-            _ => Err(format!("Unknown character '{}'", c)),
+            _ => Err(ParseError::invalid_char_class(c)),
         }
     }
 }

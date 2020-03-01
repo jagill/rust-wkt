@@ -1,7 +1,9 @@
 mod char_class;
 mod geometry_type;
+mod parse_error;
 mod tokenizer;
 pub mod wkt_reader;
+pub use parse_error::ParseError;
 
 mod test {
     use crate::geometry_type::GeometryType;

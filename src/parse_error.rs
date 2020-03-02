@@ -1,6 +1,8 @@
 use std::error;
 use std::fmt;
 
+use crate::tokenizer::Token;
+
 pub type ParseResult<T> = std::result::Result<T, ParseError>;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -10,6 +12,7 @@ pub struct ParseError {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ParseErrorType {
+    InvalidToken(usize, String),
     InvalidCharClass(char),
     UnknownGeometryType(String),
     UnexpectedInitialChars(String),
@@ -26,6 +29,9 @@ impl fmt::Display for ParseError {
                 write!(f, "Unexpected initial characters: '{}'", s)
             }
             ParseErrorType::EmptyWkt => write!(f, "Empty WKT"),
+            ParseErrorType::InvalidToken(i, s) => {
+                write!(f, "Invalid token at index {}: '{}'", i, s)
+            }
         }
     }
 }
@@ -59,6 +65,15 @@ impl ParseError {
     pub fn empty_wkt() -> ParseError {
         ParseError {
             error_type: ParseErrorType::EmptyWkt,
+        }
+    }
+
+    pub fn invalid_token(token: &Token) -> ParseError {
+        ParseError {
+            error_type: ParseErrorType::InvalidToken {
+                0: token.index,
+                1: String::from(token.value),
+            },
         }
     }
 }

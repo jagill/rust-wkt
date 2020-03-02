@@ -22,7 +22,9 @@ impl<'a> WktReader<'a, Start> {
     }
 
     fn read(mut self) -> ParseResult<WktReader<'a, Geometry>> {
-        let Token { char_class, value } = self
+        let Token {
+            char_class, value, ..
+        } = self
             .tokens
             .next_non_whitespace()
             // this is Option<ParseResult<Token>>, so double unwrap

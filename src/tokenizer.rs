@@ -1,19 +1,20 @@
 use crate::char_class::CharClass;
 use crate::parse_error::ParseResult;
 
-pub struct Tokenizer<'a> {
-    text: &'a str,
+pub struct Tokenizer<'s> {
+    text: &'s str,
     index: usize,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Token<'a> {
+pub struct Token<'s> {
+    pub index: usize,
     pub char_class: CharClass,
-    pub value: &'a str,
+    pub value: &'s str,
 }
 
-impl<'a> Tokenizer<'a> {
-    pub fn new(text: &'a str) -> Self {
+impl<'s> Tokenizer<'s> {
+    pub fn new(text: &'s str) -> Self {
         Tokenizer { text, index: 0 }
     }
 
@@ -28,10 +29,14 @@ impl<'a> Tokenizer<'a> {
         }
         None
     }
+
+    pub fn index(&self) -> usize {
+        self.index
+    }
 }
 
-impl<'a> Iterator for Tokenizer<'a> {
-    type Item = ParseResult<Token<'a>>;
+impl<'s> Iterator for Tokenizer<'s> {
+    type Item = ParseResult<Token<'s>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut end = self.index;
@@ -48,11 +53,16 @@ impl<'a> Iterator for Tokenizer<'a> {
                 },
             }
         }
+        let token_index = self.index;
         let char_class = current_class.take()?;
         let value = &self.text[self.index..end];
         self.index = end;
 
-        Some(Ok(Token { char_class, value }))
+        Some(Ok(Token {
+            index: token_index,
+            char_class,
+            value,
+        }))
     }
 }
 
@@ -64,7 +74,9 @@ mod tests {
         expected_char_class: CharClass,
         expected_value: &str,
     ) {
-        let Token { char_class, value } = result.unwrap().unwrap();
+        let Token {
+            char_class, value, ..
+        } = result.unwrap().unwrap();
         assert_eq!(char_class, expected_char_class);
         assert_eq!(value, expected_value);
     }

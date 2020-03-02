@@ -16,7 +16,9 @@ pub enum ParseErrorType {
     InvalidCharClass(char),
     UnknownGeometryType(String),
     UnexpectedInitialChars(String),
+    UnexpectedCoordinateToken(usize, String),
     EmptyWkt,
+    EmptyCoordinateSequence(usize),
 }
 
 impl fmt::Display for ParseError {
@@ -28,7 +30,13 @@ impl fmt::Display for ParseError {
             ParseErrorType::UnexpectedInitialChars(s) => {
                 write!(f, "Unexpected initial characters: '{}'", s)
             }
+            ParseErrorType::UnexpectedCoordinateToken(i, s) => {
+                write!(f, "Unexpected coordinate token at {}: '{}'", i, s)
+            }
             ParseErrorType::EmptyWkt => write!(f, "Empty WKT"),
+            ParseErrorType::EmptyCoordinateSequence(i) => {
+                write!(f, "Empty coordinate sequence at index {}", i)
+            }
             ParseErrorType::InvalidToken(i, s) => {
                 write!(f, "Invalid token at index {}: '{}'", i, s)
             }
@@ -65,6 +73,18 @@ impl ParseError {
     pub fn empty_wkt() -> ParseError {
         ParseError {
             error_type: ParseErrorType::EmptyWkt,
+        }
+    }
+
+    pub fn empty_coordinate_sequence(index: usize) -> ParseError {
+        ParseError {
+            error_type: ParseErrorType::EmptyCoordinateSequence(index),
+        }
+    }
+
+    pub fn unexpected_coordinate_token(index: usize, value: &str) -> ParseError {
+        ParseError {
+            error_type: ParseErrorType::UnexpectedCoordinateToken(index, String::from(value)),
         }
     }
 

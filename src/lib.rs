@@ -1,4 +1,5 @@
 mod char_class;
+mod coordinate_reader;
 mod geometry_type;
 mod parse_error;
 mod tokenizer;
